@@ -19,13 +19,7 @@ An AI-powered document copilot that allows users to upload PDF documents, automa
 
 ## Setup Instructions
 
-1. **Clone the repository:**
-   ```bash
-   git clone <your-repo-url>
-   cd multimodal-doc-copilot
-   ```
-
-2. **Create a virtual environment and install dependencies:**
+1. **Create a virtual environment and install dependencies:**
    ```bash
    python -m venv .venv
    .venv\Scripts\activate
@@ -33,19 +27,19 @@ An AI-powered document copilot that allows users to upload PDF documents, automa
    pip install -r requirements.txt
    ```
 
-3. **Configure Environment Variables:**
+2. **Configure Environment Variables:**
    Create a `.env` file in the `backend` folder and add your Gemini API Key:
    ```
    GEMINI_API_KEY=your_api_key_here
    ```
 
-4. **Run the Backend:**
+3. **Run the Backend:**
    ```bash
    cd backend
    uvicorn main:app --reload
    ```
 
-5. **Run the Frontend:**
+4. **Run the Frontend:**
    Open `frontend/index.htm` in your web browser.
 
 ## How it works
