@@ -8,7 +8,7 @@ from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import JSONResponse
 from pydantic import BaseModel
 from dotenv import load_dotenv
-import google.generativeai as genai
+from google import genai
 import fitz  # PyMuPDF
 import chromadb
 from chromadb.utils import embedding_functions
@@ -20,7 +20,7 @@ api_key = os.getenv("GEMINI_API_KEY")
 if not api_key:
     raise RuntimeError("GEMINI_API_KEY not found in environment. Check your .env file.")
 
-genai.configure(api_key=api_key)
+client = genai.Client(api_key=api_key)
 
 # ================== FASTAPI APP ==================
 app = FastAPI()
@@ -72,16 +72,11 @@ def health():
 @app.get("/test-gemini")
 def test_gemini():
     try:
-        model = genai.GenerativeModel("gemini-2.0-flash")
-        response = model.generate_content("Say a very short greeting.")
-
-        text = getattr(response, "text", None)
-        if not text:
-            if hasattr(response, "candidates") and response.candidates:
-                parts = response.candidates[0].content.parts
-                text = "".join(p.text for p in parts if hasattr(p, "text"))
-            else:
-                text = str(response)
+        response = client.models.generate_content(
+            model="gemini-2.5-flash",
+            contents="Say a very short greeting.",
+        )
+        text = response.text
 
         return {"response": text}
 
@@ -158,16 +153,11 @@ Question: {question}
 """
 
 
-    model = genai.GenerativeModel("gemini-2.0-flash")
-    response = model.generate_content(prompt)
-
-    text = getattr(response, "text", None)
-    if not text:
-        if hasattr(response, "candidates") and response.candidates:
-            parts = response.candidates[0].content.parts
-            text = "".join(p.text for p in parts if hasattr(p, "text"))
-        else:
-            text = str(response)
+    response = client.models.generate_content(
+        model="gemini-2.5-flash",
+        contents=prompt,
+    )
+    text = response.text
 
     return text
 
@@ -201,6 +191,12 @@ async def upload_pdf(file: UploadFile = File(...)):
         raise HTTPException(status_code=500, detail=f"Failed to parse PDF: {e}")
 
     # 5. Index chunks in Chroma
+    if not chunks:
+        raise HTTPException(
+            status_code=400,
+            detail="No text could be extracted from this PDF. It might be empty or scanned without OCR."
+        )
+
     if chunks:
         ids = [f"{c['doc_id']}-{c['chunk_id']}" for c in chunks]
         documents = [c["text"] for c in chunks]

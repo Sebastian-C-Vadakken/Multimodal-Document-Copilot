@@ -73,3 +73,7 @@ Thumbs.db
 .idea/
 *.swp
 *.swo
+
+# App Data
+data/
+backend/data/
